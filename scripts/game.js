@@ -77,8 +77,6 @@ function Juego() {
     TurnoIA()
   }
 
-  turno = turno == "J" ? "IA" : "J"
-
 }
 
 function InicioJugador() {
@@ -101,13 +99,21 @@ var FinJugador = (columna) => {
   
   InsertarFicha("J", columna)
 
-  uno.replaceWith(uno.cloneNode(true))
-  dos.replaceWith(dos.cloneNode(true))
-  tres.replaceWith(tres.cloneNode(true))
-  cuatro.replaceWith(cuatro.cloneNode(true))
-  cinco.replaceWith(cinco.cloneNode(true))
-  seis.replaceWith(seis.cloneNode(true))
-  siete.replaceWith(siete.cloneNode(true))
+  // uno.replaceWith(uno.cloneNode(true))
+  // dos.replaceWith(dos.cloneNode(true))
+  // tres.replaceWith(tres.cloneNode(true))
+  // cuatro.replaceWith(cuatro.cloneNode(true))
+  // cinco.replaceWith(cinco.cloneNode(true))
+  // seis.replaceWith(seis.cloneNode(true))
+  // siete.replaceWith(siete.cloneNode(true))
+
+  uno.removeEventListener(     "click", function(){FinJugador(1)})
+  dos.removeEventListener(     "click", function(){FinJugador(2)})
+  tres.removeEventListener(    "click", function(){FinJugador(3)})
+  cuatro.removeEventListener(  "click", function(){FinJugador(4)})
+  cinco.removeEventListener(   "click", function(){FinJugador(5)})
+  seis.removeEventListener(    "click", function(){FinJugador(6)})
+  siete.removeEventListener(   "click", function(){FinJugador(7)})
 
   EnJuego = Verificar()
 }
@@ -117,8 +123,8 @@ function sleep(ms) {
 }
 
 function Aleatorio(inferior, superior) {
-  var numPosibilidades = superior - inferior;
-  var aleatorio = Math.random() * (numPosibilidades + 1);
+  let numPosibilidades = superior - inferior;
+  let aleatorio = Math.random() * (numPosibilidades + 1);
   aleatorio = Math.floor(aleatorio);
   return inferior + aleatorio;
 }
@@ -131,7 +137,8 @@ async function TurnoIA() {
 
   await sleep(1000)
 
-  let aleatoria = Aleatorio(1, 5)
+  let aleatoria = Aleatorio(1, 7)
+  console.log(aleatoria)
 
   InsertarFicha("IA", aleatoria)
 
@@ -151,18 +158,28 @@ const InsertarFicha = (turno, columna) => {
 
   });
 
-  tablero[altura_ultima_ficha][columna - 1] = turno == "J" ? "y" : "r"
-  tablero_interfaz[altura_ultima_ficha][columna - 1].className = turno == "J" ? "celly" : "cellr"
+  if (turno == "J") {
+    tablero[altura_ultima_ficha][columna - 1] = "y"
+    tablero_interfaz[altura_ultima_ficha][columna - 1].className = "celly"
+  } else {
+    tablero[altura_ultima_ficha][columna - 1] = "r"
+    tablero_interfaz[altura_ultima_ficha][columna - 1].className = "cellr"
+  }
 
 }
 
 const Verificar = () => {
 
+  // turno = turno == J ? "IA" : "J"
+  if (turno == "J") {turno = "IA"} else {turno = "J"}
+
+  console.log(turno)
+
   // Si existe una línea de 4 fichas o el tiempo es mayor a un minuto Fin
   if (EnJuego) {
     Juego()
   }
-
+  return true
 }
 
 const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
