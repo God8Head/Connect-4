@@ -12,6 +12,7 @@
 
 // Obtener variables que se necesitan manejar acá
 
+const Infinito = Number.MAX_SAFE_INTEGER
 let primeros_turnos_partidas = ["J", "IA", "J"]
 
 let PartidosIA_interfaz   = document.getElementById("PartidosIA");
@@ -28,10 +29,10 @@ let cinco = document.querySelector(".cinco");
 let seis = document.querySelector(".seis");
 let siete = document.querySelector(".siete");
 
-let turno                 = primeros_turnos_partidas[0]
+var turno                 = primeros_turnos_partidas[0]
 let time                  = 0
 let movimientos           = 0
-let EnJuego               = 0
+let EnJuego               = true
 
 let tablero_interfaz = [
   [document.getElementById("a1"), document.getElementById("a2"), document.getElementById("a3"), document.getElementById("a4"), document.getElementById("a5"), document.getElementById("a6"), document.getElementById("a7")],
@@ -66,9 +67,9 @@ var reiniciarPartida = () => {
   ]
 }
 
-var Juego = () => {
+function Juego() {
 
-  console.log("Ahh")
+  console.log("Juegoooo!")
 
   if (turno == "J") {
     InicioJugador()
@@ -77,11 +78,12 @@ var Juego = () => {
   }
 
   turno = turno == "J" ? "IA" : "J"
+
 }
 
 function InicioJugador() {
 
-  console.log("b")
+  console.log("Jugador")
 
   turno_interfaz.className = "turnoy"
 
@@ -106,15 +108,40 @@ var FinJugador = (columna) => {
   cinco.replaceWith(cinco.cloneNode(true))
   seis.replaceWith(seis.cloneNode(true))
   siete.replaceWith(siete.cloneNode(true))
+
+  EnJuego = Verificar()
 }
 
-var TurnoIA = () => {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function Aleatorio(inferior, superior) {
+  var numPosibilidades = superior - inferior;
+  var aleatorio = Math.random() * (numPosibilidades + 1);
+  aleatorio = Math.floor(aleatorio);
+  return inferior + aleatorio;
+}
+
+async function TurnoIA() {
+
+  console.log("IA")
+
+  turno_interfaz.className = "turnor"
+
+  await sleep(1000)
+
+  let aleatoria = Aleatorio(1, 5)
+
+  InsertarFicha("IA", aleatoria)
+
+  EnJuego = Verificar()
 
 }
 
-var InsertarFicha = (turno, columna) => {
+const InsertarFicha = (turno, columna) => {
 
-  let altura_ultima_ficha = 0
+  let altura_ultima_ficha = 5
 
   tablero.forEach((fila, i) => {
     
@@ -124,21 +151,44 @@ var InsertarFicha = (turno, columna) => {
 
   });
 
-  altura_ultima_ficha += 1
-
-  tablero[altura_ultima_ficha][columna] = turno == "J" ? "y" : "r"
-  tablero_interfaz[altura_ultima_ficha][columna].className = turno == "J" ? "celly" : "cellr"
+  tablero[altura_ultima_ficha][columna - 1] = turno == "J" ? "y" : "r"
+  tablero_interfaz[altura_ultima_ficha][columna - 1].className = turno == "J" ? "celly" : "cellr"
 
 }
 
-var Verificar = () => {
+const Verificar = () => {
 
+  // Si existe una línea de 4 fichas o el tiempo es mayor a un minuto Fin
   if (EnJuego) {
     Juego()
   }
 
-  return true
 }
 
+const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
+  if (profundidad == 0 || nodo.hijos.length == 0) {
+    return nodo.ValorHeuristico
 
+  } else if (MaximizandoJugador) {
+    let valor = -Infinito
 
+    for (hijo of nodo.hijos) {
+      valor = Math.max(valor, MiniMax(hijo, profundidad - 1, false))
+    }
+
+    return valor
+
+  } else {
+
+    let valor = Infinito
+
+    // puede ser:
+    // let hijo = estado == 'J' ? 'IA' : 'J'
+
+    for (hijo of nodo.hijos) {
+      valor = Math.min(valor, MiniMax(hijo, profundidad - 1, true))
+    }
+
+    return valor
+  }
+}
