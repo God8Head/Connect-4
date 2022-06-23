@@ -8,12 +8,12 @@ function init(){
     // document.querySelector(".pause").addEventListener("click", parar);
     // document.querySelector(".restock").addEventListener("click", reiniciar);
 
-    h = 0;
-    m = 0;
-    s = 0;
+    h = 0; // Horas
+    m = 0; // Minutos
+    s = 0; // Segundos
 
     document.getElementById("time").innerHTML="00:00:00";
-}       
+}
 
 function cronometrar() {
 

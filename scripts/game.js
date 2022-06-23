@@ -18,7 +18,6 @@ let PartidosIA_interfaz   = document.getElementById("PartidosIA");
 let PartidosJ_interfaz    = document.getElementById("PartidosJ");
 let time_interfaz         = document.getElementById("time")
 let movimientos_interfaz  = document.getElementById("moves")
-let turno_interfaz        = document.getElementById("turno") 
 
 let uno = document.querySelector(".uno");
 let dos = document.querySelector(".dos");
@@ -66,78 +65,66 @@ var ReiniciarPartida = () => {
   ]
 }
 
-var Juego = () => {
+var Juego = (tablero) => {
+  
+  while (EnJuego) {
 
-  console.log("Ahh")
+    turno = turno == "J" ? "IA" : "J"
 
-  if (turno == "J") {
-    InicioJugador()
-  } else {
-    TurnoIA()
+    tablero = turno == "J" ? TurnoJugador(tablero) : TurnoIA(tablero)
+  
+    EnJuego = verificar(tablero)
+
   }
 
-  turno = turno == "J" ? "IA" : "J"
 }
 
-function InicioJugador() {
+var TurnoJugador = (tablero) => {
 
-  console.log("b")
+  uno.addEventListener(   JugadaJ(1))
+  dos.addEventListener(   JugadaJ(1))
+  tres.addEventListener(   JugadaJ(1))
+  cuatro.addEventListener(JugadaJ(1))
+  cinco.addEventListener( JugadaJ(1))
+  seis.addEventListener(JugadaJ(1))
 
-  turno_interfaz.className = "turnoy"
+const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
+  if (profundidad == 0 || nodo.hijos.length == 0) {
+    return nodo.ValorHeuristico
 
-  uno.addEventListener(     "click", function(){FinJugador(1)})
-  dos.addEventListener(     "click", function(){FinJugador(2)})
-  tres.addEventListener(    "click", function(){FinJugador(3)})
-  cuatro.addEventListener(  "click", function(){FinJugador(4)})
-  cinco.addEventListener(   "click", function(){FinJugador(5)})
-  seis.addEventListener(    "click", function(){FinJugador(6)})
-  siete.addEventListener(   "click", function(){FinJugador(7)})
+  } else if (MaximizandoJugador) {
+    let valor = -Infinito
 
+    for (let hijo of nodo.hijos) {
+      valor = Math.max(valor, MiniMax(hijo, profundidad - 1, false))
+    }
+    return valor
+
+  } else {
+    let valor = Infinito
+
+    for (let hijo of nodo.hijos) {
+      valor = Math.max(valor, MiniMax(hijo, profundidad - 1, true))
+    }
+    return valor
+  }
 }
-
-var FinJugador = (columna) => {
-  
-  InsertarFicha("J", columna)
-
-  uno.replaceWith(uno.cloneNode(true))
-  dos.replaceWith(dos.cloneNode(true))
-  tres.replaceWith(tres.cloneNode(true))
-  cuatro.replaceWith(cuatro.cloneNode(true))
-  cinco.replaceWith(cinco.cloneNode(true))
-  seis.replaceWith(seis.cloneNode(true))
-  siete.replaceWith(siete.cloneNode(true))
-}
-
-var TurnoIA = () => {
-
-}
-
 var InsertarFicha = (turno, columna) => {
 
   let altura_ultima_ficha = 0
 
   tablero.forEach((fila, i) => {
-    
+
     if ( fila[columna - 1] != "" ) {
       altura_ultima_ficha = i
     }
 
-  });
-
-  altura_ultima_ficha += 1
-
-  tablero[altura_ultima_ficha][columna] = turno == "J" ? "y" : "r"
-  tablero_interfaz[altura_ultima_ficha][columna].className = turno == "J" ? "celly" : "cellr"
+var TurnoIA = (tablero) => {
 
 }
 
-var Verificar = () => {
+var Verificar = (tablero) => {
 
-  if (EnJuego) {
-    Juego()
-  }
-
-  return true
 }
 
 
