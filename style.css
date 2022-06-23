@@ -152,7 +152,27 @@ nav {
   border-radius: 100%;
 }
 
-.r {
+.celly {
+  width: 3.5vw;
+  height: 3.5vw;
+
+  background-color: #ffff66;
+  border-style: solid;
+  border-color: #f5c71a;
+  border-radius: 100%;
+}
+
+.cellr {
+  width: 3.5vw;
+  height: 3.5vw;
+
+  background-color: #a52a2a;
+  border-style: solid;
+  border-color: #800000;
+  border-radius: 100%;
+}
+
+/* .r {
   background-color: #a52a2a;
   border-style: solid;
   border-color: #800000;
@@ -162,7 +182,7 @@ nav {
   background-color: #ffff66;
   border-style: solid;
   border-color: #f5c71a;
-}
+} */
 
 footer {
   background-color: #f2f3f4;
@@ -202,5 +222,25 @@ footer {
   background-color: #000039;
   border-style: solid;
   border-color: rgba(255, 255, 255, 0);
+  border-radius: 100%;
+}
+
+.turnoy {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 100%;
+  background-color: #ffff66;
+  border-style: solid;
+  border-color: #f5c71a;
+}
+
+.turnor {
+  width: 30px;
+  height: 30px;
+
+  background-color: #a52a2a;
+  border-style: solid;
+  border-color: #800000;
   border-radius: 100%;
 }

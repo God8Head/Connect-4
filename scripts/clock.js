@@ -5,7 +5,6 @@ var playing = false
 
 function init(){
     document.querySelector(".play").addEventListener("click", cronometrar);
-    document.querySelector(".play").addEventListener("click", Juego(tablero));
     // document.querySelector(".pause").addEventListener("click", parar);
     // document.querySelector(".restock").addEventListener("click", reiniciar);
 
@@ -16,12 +15,16 @@ function init(){
     document.getElementById("time").innerHTML="00:00:00";
 }       
 
-function cronometrar(){
+function cronometrar() {
+
     escribir();
     clock = setInterval(escribir,1000);
     
     document.querySelector(".play").removeEventListener("click", cronometrar);
+    
     playing = true
+    Juego()
+
 }
 function escribir(){
     var hAux, mAux, sAux;

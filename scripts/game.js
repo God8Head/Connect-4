@@ -18,6 +18,7 @@ let PartidosIA_interfaz   = document.getElementById("PartidosIA");
 let PartidosJ_interfaz    = document.getElementById("PartidosJ");
 let time_interfaz         = document.getElementById("time")
 let movimientos_interfaz  = document.getElementById("moves")
+let turno_interfaz        = document.getElementById("turno") 
 
 let uno = document.querySelector(".uno");
 let dos = document.querySelector(".dos");
@@ -65,37 +66,78 @@ var reiniciarPartida = () => {
   ]
 }
 
-var Juego = (tablero) => {
-  
-  while (EnJuego) {
+var Juego = () => {
 
-    turno = turno == "J" ? "IA" : "J"
+  console.log("Ahh")
 
-    tablero = turno == "J" ? TurnoJugador(tablero) : TurnoIA(tablero)
-  
-    EnJuego = verificar(tablero)
-
+  if (turno == "J") {
+    InicioJugador()
+  } else {
+    TurnoIA()
   }
 
+  turno = turno == "J" ? "IA" : "J"
 }
 
-var TurnoJugador = (tablero) => {
+function InicioJugador() {
 
-  uno.addEventListener(   JugadaJ(1))
-  dos.addEventListener(   JugadaJ(1))
-  tres.addEventListener(   JugadaJ(1))
-  cuatro.addEventListener(JugadaJ(1))
-  cinco.addEventListener( JugadaJ(1))
-  seis.addEventListener(JugadaJ(1))
+  console.log("b")
+
+  turno_interfaz.className = "turnoy"
+
+  uno.addEventListener(     "click", function(){FinJugador(1)})
+  dos.addEventListener(     "click", function(){FinJugador(2)})
+  tres.addEventListener(    "click", function(){FinJugador(3)})
+  cuatro.addEventListener(  "click", function(){FinJugador(4)})
+  cinco.addEventListener(   "click", function(){FinJugador(5)})
+  seis.addEventListener(    "click", function(){FinJugador(6)})
+  siete.addEventListener(   "click", function(){FinJugador(7)})
 
 }
 
-var TurnoIA = (tablero) => {
+var FinJugador = (columna) => {
+  
+  InsertarFicha("J", columna)
+
+  uno.replaceWith(uno.cloneNode(true))
+  dos.replaceWith(dos.cloneNode(true))
+  tres.replaceWith(tres.cloneNode(true))
+  cuatro.replaceWith(cuatro.cloneNode(true))
+  cinco.replaceWith(cinco.cloneNode(true))
+  seis.replaceWith(seis.cloneNode(true))
+  siete.replaceWith(siete.cloneNode(true))
+}
+
+var TurnoIA = () => {
 
 }
 
-var Verificar = (tablero) => {
+var InsertarFicha = (turno, columna) => {
 
+  let altura_ultima_ficha = 0
+
+  tablero.forEach((fila, i) => {
+    
+    if ( fila[columna - 1] != "" ) {
+      altura_ultima_ficha = i
+    }
+
+  });
+
+  altura_ultima_ficha += 1
+
+  tablero[altura_ultima_ficha][columna] = turno == "J" ? "y" : "r"
+  tablero_interfaz[altura_ultima_ficha][columna].className = turno == "J" ? "celly" : "cellr"
+
+}
+
+var Verificar = () => {
+
+  if (EnJuego) {
+    Juego()
+  }
+
+  return true
 }
 
 
