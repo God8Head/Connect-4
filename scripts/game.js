@@ -50,7 +50,7 @@ let tablero = [
   ["", "", "", "", "", "", ""],
 ]
 
-var reiniciarPartida = () => {
+var ReiniciarPartida = () => {
 
   time = 0
   movimientos = 0
