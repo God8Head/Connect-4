@@ -33,6 +33,7 @@ var turno                 = primeros_turnos_partidas[0]
 let time                  = 0
 let movimientos           = 0
 let EnJuego               = true
+let TableroColsDisp       = [5, 5, 5, 5, 5, 5, 5]
 
 /*let tablero_interfaz = [
   [document.getElementById("a1"), document.getElementById("a2"), document.getElementById("a3"), document.getElementById("a4"), document.getElementById("a5"), document.getElementById("a6"), document.getElementById("a7")],
@@ -167,6 +168,9 @@ function Aleatorio(inferior, superior) {
   let numPosibilidades = superior - inferior;
   let aleatorio = Math.random() * (numPosibilidades + 1);
   aleatorio = Math.floor(aleatorio);
+
+  if (aleatorio >= 7 || TableroColsDisp[aleatorio] < 0) return Aleatorio(inferior, superior)
+
   return inferior + aleatorio;
 }
 
@@ -176,7 +180,7 @@ async function TurnoIA() {
 
   turno_interfaz.className = "turnor"
 
-  await sleep(1000)
+  await sleep(500)
 
   let aleatoria = Aleatorio(1, 7)
   console.log(aleatoria)
@@ -189,6 +193,10 @@ async function TurnoIA() {
 
 const InsertarFicha = (turno, columna) => {
 
+  if (columna >= 7 || TableroColsDisp[columna] < 0) return
+
+  TableroColsDisp[columna] -= 1
+
   let altura_ultima_ficha = 5
 
   for (let i = 0; i < tablero.length; i++) {
@@ -198,6 +206,8 @@ const InsertarFicha = (turno, columna) => {
       break
     }
   }
+
+  console.log(altura_ultima_ficha)
 
   if (turno == "J") {
     tablero[altura_ultima_ficha][columna] = "y"
