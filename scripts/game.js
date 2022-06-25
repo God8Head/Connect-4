@@ -46,7 +46,6 @@ let EnJuego               = true
 const CargarTablero_interfaz = () => {
   let output = Array(Array())
 
-  console.log(output.length)
   output.pop()
 
   for (let i = 0; i <= 5; i++) {
