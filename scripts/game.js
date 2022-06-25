@@ -104,14 +104,36 @@ function InicioJugador() {
 
   turno_interfaz.className = "turnoy"
 
-  uno.addEventListener(     "click", function(){FinJugador(1)})
-  dos.addEventListener(     "click", function(){FinJugador(2)})
-  tres.addEventListener(    "click", function(){FinJugador(3)})
-  cuatro.addEventListener(  "click", function(){FinJugador(4)})
-  cinco.addEventListener(   "click", function(){FinJugador(5)})
-  seis.addEventListener(    "click", function(){FinJugador(6)})
-  siete.addEventListener(   "click", function(){FinJugador(7)})
+  uno.addEventListener(     "click", unoFinJ)
+  dos.addEventListener(     "click", dosFinJ)
+  tres.addEventListener(    "click", tresFinJ)
+  cuatro.addEventListener(  "click", cuatroFinJ)
+  cinco.addEventListener(   "click", cincoFinJ)
+  seis.addEventListener(    "click", seisFinJ)
+  siete.addEventListener(   "click", sieteFinJ)
 
+}
+
+function unoFinJ(){
+  FinJugador(0)
+}
+function dosFinJ(){
+  FinJugador(1)
+}
+function tresFinJ(){
+  FinJugador(2)
+}
+function cuatroFinJ(){
+  FinJugador(3)
+}
+function cincoFinJ(){
+  FinJugador(4)
+}
+function seisFinJ(){
+  FinJugador(5)
+}
+function sieteFinJ(){
+  FinJugador(6)
 }
 
 var FinJugador = (columna) => {
@@ -126,13 +148,13 @@ var FinJugador = (columna) => {
   // seis.replaceWith(seis.cloneNode(true))
   // siete.replaceWith(siete.cloneNode(true))
 
-  uno.removeEventListener(     "click", function(){FinJugador(1)})
-  dos.removeEventListener(     "click", function(){FinJugador(2)})
-  tres.removeEventListener(    "click", function(){FinJugador(3)})
-  cuatro.removeEventListener(  "click", function(){FinJugador(4)})
-  cinco.removeEventListener(   "click", function(){FinJugador(5)})
-  seis.removeEventListener(    "click", function(){FinJugador(6)})
-  siete.removeEventListener(   "click", function(){FinJugador(7)})
+  uno.removeEventListener(     "click", unoFinJ)
+  dos.removeEventListener(     "click", dosFinJ)
+  tres.removeEventListener(    "click", tresFinJ)
+  cuatro.removeEventListener(  "click", cuatroFinJ)
+  cinco.removeEventListener(   "click", cincoFinJ)
+  seis.removeEventListener(    "click", seisFinJ)
+  siete.removeEventListener(   "click", sieteFinJ)
 
   EnJuego = Verificar()
 }
@@ -169,20 +191,20 @@ const InsertarFicha = (turno, columna) => {
 
   let altura_ultima_ficha = 5
 
-  tablero.forEach((fila, i) => {
-    
-    if ( fila[columna - 1] != "" ) {
-      altura_ultima_ficha = i
+  for (let i = 0; i < tablero.length; i++) {
+    let fila = tablero[i]
+    if ( fila[columna] != "" ) {
+      altura_ultima_ficha = i - 1
+      break
     }
-
-  });
+  }
 
   if (turno == "J") {
-    tablero[altura_ultima_ficha][columna - 1] = "y"
-    tablero_interfaz[altura_ultima_ficha][columna - 1].className = "celly"
+    tablero[altura_ultima_ficha][columna] = "y"
+    tablero_interfaz[altura_ultima_ficha][columna].className = "celly"
   } else {
-    tablero[altura_ultima_ficha][columna - 1] = "r"
-    tablero_interfaz[altura_ultima_ficha][columna - 1].className = "cellr"
+    tablero[altura_ultima_ficha][columna] = "r"
+    tablero_interfaz[altura_ultima_ficha][columna].className = "cellr"
   }
 
 }
