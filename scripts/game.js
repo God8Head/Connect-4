@@ -21,14 +21,6 @@ let movimientos_interfaz = document.getElementById("moves")
 let turno_interfaz       = document.getElementById("turno")
 const boton              = document.getElementById("boton")
 
-// let uno    = document.querySelector(".uno");
-// let dos    = document.querySelector(".dos");
-// let tres   = document.querySelector(".tres");
-// let cuatro = document.querySelector(".cuatro");
-// let cinco  = document.querySelector(".cinco");
-// let seis   = document.querySelector(".seis");
-// let siete  = document.querySelector(".siete");
-
 function unoFinJ(){
   FinJugador(0)
 }
@@ -148,7 +140,7 @@ function FinPorTiempo() {
 }
 
 function Inicio() {
-  setTimeout(FinPorTiempo, 59000);
+  setTimeout(FinPorTiempo, 600000);
   Juego()
 }
 
@@ -204,13 +196,33 @@ function Aleatorio(inferior, superior) {
 async function TurnoIA() {
 
   turno_interfaz.className = "turnor"
+  console.log("Pasé por IA")
 
-  // await sleep(500)
+  await sleep(5)
 
-  let aleatoria = Aleatorio(0, 6)
+  //let aleatoria = Aleatorio(0, 6)
 
-  InsertarFicha("IA", aleatoria)
-  // InsertarFicha("IA", MiniMax(nodo, 4, true))
+  //InsertarFicha("IA", aleatoria)
+  {
+    let nodoActual = new Nodo(tablero, 'r')
+    nodoActual.GenerarHijos()
+    let nodoProximo = MiniMax(nodoActual, 4, true)
+
+    let jugada = -1
+
+    for (let i = 0; i < tablero.length; i++) {
+      for (let j = 0; j < tablero[i].length; j++) {
+        if (tablero[i][j] != nodoProximo.estado[i][j]) {
+          jugada = j
+          break
+        }
+      }
+      if (jugada != -1) break
+    }
+    // console.log(nodoProximo)
+
+    InsertarFicha("IA", jugada)
+  }
 
   Verificar()
 
@@ -232,9 +244,6 @@ const InsertarFicha = (turno, columna) => {
     }
   }
 
-  console.log(altura_ultima_ficha)
-  console.log(columna)
-
   if (turno == "J") {
     tablero[altura_ultima_ficha][columna] = "y"
     tablero_interfaz[altura_ultima_ficha][columna].className = "celly"
@@ -244,10 +253,9 @@ const InsertarFicha = (turno, columna) => {
     tablero_interfaz[altura_ultima_ficha][columna].className = "cellr"
     FichasIA -= 1
   }
-
 }
 
-function Victoria_PosibleVictoria(jugador, posible) {
+function Victoria_PosibleVictoria(tablero, jugador, posible) {
   const numToWin = 4
   let lineasEncontradas = 0
 
@@ -261,7 +269,6 @@ function Victoria_PosibleVictoria(jugador, posible) {
       cantidad = (celda == jugador || celda == posible) ? cantidad + 1 : 0
       NumHorizontales = cantidad >= numToWin ? NumHorizontales + 1 : NumHorizontales
     }
-
   }
 
   //Buscando lineas de 4 verticales
@@ -306,11 +313,11 @@ function Victoria_PosibleVictoria(jugador, posible) {
     }
   }
 
-  console.log("___________________________________________________")
-  console.log(NumHorizontales)
-  console.log(NumVerticales)
-  console.log(NumDiagonalNeg)
-  console.log(NumDiagonalPos)
+  // console.log("___________________________________________________")
+  // console.log(NumHorizontales)
+  // console.log(NumVerticales)
+  // console.log(NumDiagonalNeg)
+  // console.log(NumDiagonalPos)
 
   lineasEncontradas =
       NumHorizontales +
@@ -318,6 +325,57 @@ function Victoria_PosibleVictoria(jugador, posible) {
       NumDiagonalNeg +
       NumDiagonalPos
   return lineasEncontradas
+}
+
+function PuntuarSituacion(situacion, jugador) {
+
+  function Contar(arreglo, aContar) {
+    return arreglo.reduce((total, actual) => {
+      return actual == aContar ? total + 1 : total
+    })
+  }
+
+  let puntaje = 0
+  let enemigo = jugador == "y" ? "r" : "y"
+
+  if (Contar(situacion, jugador) == 4) {
+    puntaje += 100
+  } else if (Contar(situacion, jugador) == 3 && Contar(situacion, "") == 1) {
+    puntaje += 5
+  } else if (Contar(situacion, jugador) == 2 && Contar(situacion, "") == 2) {
+    puntaje += 2
+  }
+
+  if (Contar(situacion, enemigo) == 3 && Contar(situacion, "") == 1) {
+    puntaje -= 4
+  }
+
+}
+
+function PuntuarTablero(tablero, jugador) {
+
+  let puntaje = 0
+
+  //Puntuando toda situación horizontal posible
+  for (let fila of tablero) {
+    let cantidad = 0;
+    for (let celda of fila) {
+      cantidad = (celda == jugador || celda == posible) ? cantidad + 1 : 0
+      NumHorizontales = cantidad >= numToWin ? NumHorizontales + 1 : NumHorizontales
+    }
+  }
+
+  for (let fil = 0; fil < tablero.length; fil++) {
+    let fila = tablero[fil]
+    for (let col = 0; col < tablero.length - numToWin; col++) {
+
+      let situacion = fila.slice(col, col + numToWin)
+      score += PuntuarSituacion(situacion, jugador)
+    }
+  }
+
+
+
 }
 
 const Verificar = () => {
@@ -333,7 +391,7 @@ const Verificar = () => {
   let jugadores = ["y", "r"]
   let HayCuatroLineas = false
   jugadores.forEach((jugador) => {
-    if (Victoria_PosibleVictoria(jugador, jugador) != 0) {
+    if (Victoria_PosibleVictoria(tablero, jugador, jugador) != 0) {
       HayCuatroLineas = true
     }
   })
@@ -384,24 +442,130 @@ class Nodo {
   constructor(estado, jugador) {
     this.hijos = Array()
     this.ValorHeuristico = 0
-    //this.estado = Array(Array())
     this.estado = this.#DeepCopy(estado)
     this.jugador = jugador
 
-    this.#GenerarHijos()
+    //this.#GenerarHijos()
+    //this.HeuristicaEstado()
   }
 
   #DeepCopy(dato) {
     return JSON.parse(JSON.stringify(dato))
   }
 
-  #GenerarHijos() {
+  Heuristica_Estado() {
+    let heuristica
+    let IAWins = Victoria_PosibleVictoria(this.estado, "r", "r") != 0
+    let JWins = Victoria_PosibleVictoria(this.estado, "y", "y") != 0
 
-    for(let i = 0; i < nuevoEstado.length; i++) {
-      for(let j = 0; j < nuevoEstado[i].length; j++) {
+    let SinFichas = false
+    if (FichasIA <= 0 && FichasJugador <= 0) {SinFichas = true}
+
+    if (IAWins) {
+      heuristica = 10000
+    } else if (JWins) {
+      heuristica = -10000
+    } else if (SinFichas) {
+      heuristica = 0
+    } else {
+      heuristica = Victoria_PosibleVictoria(this.estado, "r", "") -
+          Victoria_PosibleVictoria(this.estado, "y", "")
+    }
+    this.ValorHeuristico = heuristica
+  }
+
+  HeuristicaEstado() {
+    /*for (let i = 0; i < TablaHauristica.length; i++) {
+      for (let j = 0; j < TablaHauristica[i].length; j++) {
+        if (this.estado[i][j] != '') {
+          let valor = TablaHauristica[i][j] + Victoria_PosibleVictoria(this.estado, this.jugador)
+          valor *= this.estado[i][j] == 'y' ? -1 : 1
+
+          this.ValorHeuristico += valor
+        }
+      }
+    }*/
+    const victoria = (jugador) => {
+      Victoria_PosibleVictoria(hijo, this.jugador, jugador) - Victoria_PosibleVictoria(hijo, this.jugador, jugador)
+    }
+    for (let hijo of this.hijos) {
+      let posible = victoria(this.jugador == 'y' ? 'r' : 'y')
+      if (this.ValorHeuristico < posible) {
+        this.ValorHeuristico = posible
+      }
+    }
+    this.ValorHeuristico *= this.ValorHeuristico < 0 && this.jugador == 'y' ? 1 : -1
+  }
+
+  TresEnRaya(jugador) {
+    let NumHorizontales = 0
+
+    // Verificar que haya en la siguientes configuraciones:
+    // | XX X  |
+    // |  XXX  |
+    for (let fila of tablero) {
+
+      let cantidad = 0;
+      for (let celda of fila) {
+        cantidad = (celda == jugador || celda == posible) ? cantidad + 1 : 0
+        NumHorizontales = cantidad >= numToWin ? NumHorizontales + 1 : NumHorizontales
+      }
+    }
+
+    //Buscando lineas de 4 verticales
+    let NumVerticales = 0
+
+    for (let col = 0; col < tablero[0].length; col++) {
+      let cantidad = 0;
+      for (let fil = 0; fil < tablero.length; fil++) {
+        cantidad = (tablero[fil][col] == jugador ||
+            tablero[fil][col] == posible) ? cantidad + 1 : 0
+        NumVerticales = cantidad >= numToWin ? NumVerticales + 1 : NumVerticales
+      }
+    }
+
+    //Buscando líneaas de 4 diagonales de pendiente negativa
+    let NumDiagonalNeg = 0
+
+    for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
+      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+
+        let cantidad = 0
+        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
+          cantidad = (tablero[fil + posLinea][col + posLinea] == jugador ||
+              tablero[fil + posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
+          NumDiagonalNeg += cantidad >= numToWin ? 1 : 0
+        }
+      }
+    }
+
+    //Buscando líneas de 4 diagonales de pendiente positiva
+    let NumDiagonalPos = 0
+
+    for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
+      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+
+        let cantidad = 0
+        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
+          cantidad = (tablero[fil - posLinea][col + posLinea] == jugador ||
+              tablero[fil - posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
+          NumDiagonalPos += cantidad >= numToWin ? 1 : 0
+        }
+      }
+    }
+  }
+
+  DosEnRaya(jugador) {
+
+  }
+
+  GenerarHijos() {
+
+    for(let i = 0; i < this.estado.length; i++) {
+      for(let j = 0; j < this.estado[i].length; j++) {
 
         try {
-          if ((i + 1 == nuevoEstado.length || nuevoEstado[i+1][j] != '') && nuevoEstado[i][j] == '') {
+          if ((i + 1 == this.estado.length || this.estado[i+1][j] != '') && this.estado[i][j] == '') {
             let nuevoHijo = this.#DeepCopy(this.estado)
             nuevoHijo[i][j] = this.jugador
             this.hijos.push(nuevoHijo)
@@ -410,49 +574,72 @@ class Nodo {
       }
     }
   }
-}
-{
-  // Cuando se quiere llamar a la función minimax junto con los nodos
-  let estadoFicticio = [
-    ["", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", ""],
-    ["", "", "", "y", "", "", ""],
-    ["", "", "y", "y", "y", "", ""],
-  ]
-  let nodo = new Nodo(estadoFicticio, 'r')
+
+  Heuristica() {
+    this.HeuristicaEstado()
+  }
 }
 
+const Max = (primero, segundo) => {
+  return primero.ValorHeuristico > segundo.ValorHeuristico ? primero : segundo
+}
+const Min = (primero, segundo) => {
+  return primero.ValorHeuristico < segundo.ValorHeuristico ? primero : segundo
+}
 const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
   let jugador = MaximizandoJugador ? "IA" : "J"
 
-  if (profundidad == 0 || nodo.hijos.length == 0) {
-    let heuristica =
-        Victoria_PosibleVictoria("r", "") -
-        Victoria_PosibleVictoria("y", "")
-    return heuristica
+  /*if (profundidad == 0 || nodo.hijos != undefined && nodo.hijos.length == 0) {
+    nodo.Heuristica()
+    return nodo
+  }*/
 
-  } else if (MaximizandoJugador) {
-    let valor = -Infinito
+  let IAWins = Victoria_PosibleVictoria(nodo.estado, "r", "r")
+  let JWins = Victoria_PosibleVictoria(nodo.estado, "j", "j")
 
-    for (hijo of nodo.hijos) {
-      valor = Math.max(valor, MiniMax(hijo, profundidad - 1, false))
+  let Ganador = "Nadie"
+  if (IAWins > 0) {Ganador = "IA"}
+  else if (JWins > 0) {Ganador = "J"}
+
+  let SinFichas = false
+  if (FichasIA <= 0 && FichasJugador <= 0) {SinFichas = true}
+
+  let NodoTerminal = SinFichas || Ganador != "Nadie"
+
+  if (NodoTerminal || profundidad == 0) {
+    console.log("Ganador: " + Ganador + "___" + "SinFichas: " + SinFichas)
+    nodo.Heuristica()
+    return nodo
+  }
+
+  let hijos = []
+  nodo.GenerarHijos()
+  nodo.Heuristica()
+  for (let hijo of nodo.hijos) {
+    hijos.push(new Nodo(hijo, jugador == "IA" ? 'r' : 'y'))
+    hijos[hijos.length - 1].GenerarHijos()
+  }
+
+  if (MaximizandoJugador) {
+
+    let nodoMax = new Nodo("", "")
+    nodoMax.ValorHeuristico = -Infinito
+
+    for (let hijo of hijos) {
+      nodoMax = Max(nodoMax, MiniMax(hijo, profundidad - 1, false))
     }
 
-    return valor
+    return nodoMax
 
   } else {
 
-    let valor = Infinito
+    let nodoMin = new Nodo("", "")
+    nodoMin.ValorHeuristico = Infinito
 
-    // puede ser:
-    // let hijo = estado == 'J' ? 'IA' : 'J'
-
-    for (hijo of nodo.hijos) {
-      valor = Math.min(valor, MiniMax(hijo, profundidad - 1, true))
+    for (let hijo of hijos) {
+      nodoMin = Min(nodoMin, MiniMax(hijo, profundidad - 1, true))
     }
 
-    return valor
+    return nodoMin
   }
 }
