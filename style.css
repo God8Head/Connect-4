@@ -244,3 +244,7 @@ footer {
   border-color: #800000;
   border-radius: 100%;
 }
+
+#time {
+  font-family: monospace;
+}

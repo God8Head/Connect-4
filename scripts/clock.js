@@ -23,7 +23,7 @@ function cronometrar() {
     document.querySelector(".play").removeEventListener("click", cronometrar);
     
     playing = true
-    Juego()
+    Inicio()
 
 }
 function escribir(){
@@ -40,21 +40,3 @@ function escribir(){
     document.getElementById("time").innerHTML = hAux + ":" + mAux + ":" + sAux; 
 
 }
-
-// function parar() {
-//     clearInterval(clock);
-//     document.querySelector(".play").addEventListener("click",cronometrar);
-//     playing = false
-// }
-
-// function reiniciar(){
-//     clearInterval(clock);
-//     document.getElementById("time").innerHTML="00:00:00";
-
-//     h=0;m=0;s=0;
-//     document.querySelector(".play").addEventListener("click",cronometrar);
-//     playing = false
-
-
-//     reiniciarPArtida();
-// }
