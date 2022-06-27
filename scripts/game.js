@@ -552,7 +552,7 @@ class Nodo {
         }
       }
       if (puntos > CP) {
-        puntosH += premio
+        puntosH += 2*premio
       } else if (puntos == CP) {
         puntosH++
       }
@@ -591,7 +591,7 @@ class Nodo {
 
   DosEnRaya(color) {
     const CP = 2 // Cantidad de piezas
-    const premio = 5
+    const premio = 1
     let rango = [8, 7, 6, 5, 4, 3]
 
     let puntosH  = 0 // puntos horizontales         -
@@ -682,7 +682,7 @@ class Nodo {
         }
       }
       if (puntos > CP) {
-        puntosH += premio
+        puntosH += 2*premio
       } else if (puntos == CP) {
         puntosH++
       }
