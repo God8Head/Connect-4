@@ -43,7 +43,7 @@ function sieteFinJ(){
   FinJugador(6)
 }
 
-let columnas_interfaz = [
+const columnas_interfaz = [
   document.querySelector(".uno"),
   document.querySelector(".dos"),
   document.querySelector(".tres"),
@@ -53,7 +53,7 @@ let columnas_interfaz = [
   document.querySelector(".siete")
 ]
 
-let columnas_funciones = [
+const columnas_funciones = [
     unoFinJ,
     dosFinJ,
     tresFinJ,
@@ -63,12 +63,12 @@ let columnas_funciones = [
     sieteFinJ
 ]
 
-var turno                 = primeros_turnos_partidas[0]
-let movimientos           = 0
-let EnJuego               = true
-let TableroColsDisp       = [6, 6, 6, 6, 6, 6, 6]
-let FichasJugador         = 21
-let FichasIA              = 21
+var turno           = primeros_turnos_partidas[0]
+let movimientos     = 0
+let EnJuego         = true
+let TableroColsDisp = [6, 6, 6, 6, 6, 6, 6]
+let FichasJugador   = 21
+let FichasIA        = 21
 
 const CargarTablero_interfaz = () => {
   let output = Array(Array())
@@ -107,7 +107,7 @@ const TablaHauristica = [
   [3, 4, 5,  7,  5,  4, 3],
 ]
 
-var reiniciarPartida = () => {
+const reiniciarPartida = () => {
 
   time = 0
   movimientos = 0
@@ -164,7 +164,7 @@ function InicioJugador() {
 
 }
 
-var FinJugador = (columna) => {
+const FinJugador = (columna) => {
 
   for (let i = 0; i < columnas_interfaz.length; i++) {
     if (TableroColsDisp[i] != 0) {
@@ -198,7 +198,7 @@ async function TurnoIA() {
   turno_interfaz.className = "turnor"
   console.log("Pasé por IA")
 
-  await sleep(5)
+  // await sleep(5)
 
   //let aleatoria = Aleatorio(0, 6)
 
@@ -206,7 +206,7 @@ async function TurnoIA() {
   {
     let nodoActual = new Nodo(tablero, 'r')
     nodoActual.GenerarHijos()
-    let nodoProximo = MiniMax(nodoActual, 4, true)
+    let nodoProximo = MiniMax(nodoActual, 2, true)
 
     let jugada = -1
 
@@ -409,7 +409,7 @@ const Verificar = () => {
       icon: "info",
       button: "Listo",
     });
-    boton.src = "/data/images/restock.svg"
+    boton.src = "data/images/restock.svg"
     clearInterval(clock);
   } else {
 
@@ -453,109 +453,269 @@ class Nodo {
     return JSON.parse(JSON.stringify(dato))
   }
 
-  Heuristica_Estado() {
-    let heuristica
-    let IAWins = Victoria_PosibleVictoria(this.estado, "r", "r") != 0
-    let JWins = Victoria_PosibleVictoria(this.estado, "y", "y") != 0
-
-    let SinFichas = false
-    if (FichasIA <= 0 && FichasJugador <= 0) {SinFichas = true}
-
-    if (IAWins) {
-      heuristica = 10000
-    } else if (JWins) {
-      heuristica = -10000
-    } else if (SinFichas) {
-      heuristica = 0
-    } else {
-      heuristica = Victoria_PosibleVictoria(this.estado, "r", "") -
-          Victoria_PosibleVictoria(this.estado, "y", "")
-    }
-    this.ValorHeuristico = heuristica
-  }
-
   HeuristicaEstado() {
-    /*for (let i = 0; i < TablaHauristica.length; i++) {
-      for (let j = 0; j < TablaHauristica[i].length; j++) {
-        if (this.estado[i][j] != '') {
-          let valor = TablaHauristica[i][j] + Victoria_PosibleVictoria(this.estado, this.jugador)
-          valor *= this.estado[i][j] == 'y' ? -1 : 1
-
-          this.ValorHeuristico += valor
-        }
-      }
-    }*/
-    const victoria = (jugador) => {
-      Victoria_PosibleVictoria(hijo, this.jugador, jugador) - Victoria_PosibleVictoria(hijo, this.jugador, jugador)
-    }
-    for (let hijo of this.hijos) {
-      let posible = victoria(this.jugador == 'y' ? 'r' : 'y')
-      if (this.ValorHeuristico < posible) {
-        this.ValorHeuristico = posible
-      }
-    }
-    this.ValorHeuristico *= this.ValorHeuristico < 0 && this.jugador == 'y' ? 1 : -1
+    let oponente = this.jugador == 'y' ? 'r' : 'y'
+    this.ValorHeuristico = this.TresEnRaya(this.jugador) + this.DosEnRaya(this.jugador) -
+        (this.TresEnRaya(oponente) + this.DosEnRaya(oponente))
   }
 
-  TresEnRaya(jugador) {
-    let NumHorizontales = 0
+  TresEnRaya(color) {
+    const CP = 3 // Cantidad de piezas
+    const premio = 10
+    let rango = [8, 7, 6, 5, 4, 3]
 
-    // Verificar que haya en la siguientes configuraciones:
-    // | XX X  |
-    // |  XXX  |
-    for (let fila of tablero) {
+    let puntosH  = 0 // puntos horizontales         -
+    let puntosV  = 0 // puntos verticales           |
+    let puntosDN = 0 // puntos diagonales negativos \
+    let puntosDP = 0 // puntos diagonales positivos /
 
-      let cantidad = 0;
-      for (let celda of fila) {
-        cantidad = (celda == jugador || celda == posible) ? cantidad + 1 : 0
-        NumHorizontales = cantidad >= numToWin ? NumHorizontales + 1 : NumHorizontales
+
+    // Buscando diagonales negativos.
+    for (let i of rango) {
+      let espacios = 0
+      let puntos   = 0
+
+      for (let x = 0; x <= 6; x++) {
+        let y = 5 - (i - x)
+
+        try {
+          if (this.estado[y][x] == color) {
+            puntos++
+
+          } else if (this.estado[y][x] == '' && puntos != 0 && espacios < CP - 1) {
+            espacios++
+          } else {
+            espacios = 0
+            puntos = 0
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosDN += premio
+      } else if (puntos == CP) {
+        puntosDN++
       }
     }
 
-    //Buscando lineas de 4 verticales
-    let NumVerticales = 0
+    // Buscando diagonales positivos
+    rango = [-3, -2, -1, 0, 1, 2]
 
-    for (let col = 0; col < tablero[0].length; col++) {
-      let cantidad = 0;
-      for (let fil = 0; fil < tablero.length; fil++) {
-        cantidad = (tablero[fil][col] == jugador ||
-            tablero[fil][col] == posible) ? cantidad + 1 : 0
-        NumVerticales = cantidad >= numToWin ? NumVerticales + 1 : NumVerticales
+    for (let i of rango) {
+      let espacios = 0
+      let puntos   = 0
+
+      for (let x = 0; x <= 6; x++) {
+        let y = 5 - (x + i)
+
+        try {
+          if (this.estado[y][x] == color) {
+            puntos++
+
+          } else if (this.estado[y][x] == '' && puntos != 0 && espacios < CP - 1) {
+            espacios++
+          } else {
+            espacios = 0
+            puntos = 0
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosDP += premio
+      } else if (puntos == CP) {
+        puntosDP++
       }
     }
 
-    //Buscando líneaas de 4 diagonales de pendiente negativa
-    let NumDiagonalNeg = 0
+    // Buscando horizontales
+    for (let j = 5; j >= 0; j--) {
+      const validos = [color, '']
+      let espacios = 0
+      let puntos = 0
 
-    for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
-      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+      for (let i = 0; i < 7; i++) {
+        try {
+          if (this.estado[j][i] == color) {
+            puntos++
 
-        let cantidad = 0
-        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-          cantidad = (tablero[fil + posLinea][col + posLinea] == jugador ||
-              tablero[fil + posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
-          NumDiagonalNeg += cantidad >= numToWin ? 1 : 0
+          } else if (!validos.includes(this.estado[j][i]) || this.estado[j][i] == '' && j + 1 < 6 && this.estado[j+1][i] == '' || espacios == 2) {
+            espacios = 0
+            puntos = 0
+
+          } else if (j + 1 < 6 && this.estado[j+1][i] != '' || j == 5 && this.estado[j][i] == '') {
+            espacios++
+          }
+        } catch (e) {}
+        if (puntos == CP) {
+          puntosH++
+          espacios = 0
+          puntos = 0
         }
       }
-    }
-
-    //Buscando líneas de 4 diagonales de pendiente positiva
-    let NumDiagonalPos = 0
-
-    for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
-      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
-
-        let cantidad = 0
-        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-          cantidad = (tablero[fil - posLinea][col + posLinea] == jugador ||
-              tablero[fil - posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
-          NumDiagonalPos += cantidad >= numToWin ? 1 : 0
-        }
+      if (puntos > CP) {
+        puntosH += premio
+      } else if (puntos == CP) {
+        puntosH++
       }
     }
+    //console.log(puntosH)
+
+    // Buscando verticales
+    for (let i = 0; i < 7; i++) {
+      let puntos = 0
+      const validos = [color, '']
+
+      for (let j = 5; j >= 0; j--) {
+        try {
+          if (this.estado[j][i] == color) {
+            puntos++
+
+          } else if (!validos.includes(this.estado[j][i])) {
+            puntos = 0
+
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosV += premio
+      } else if (puntos == CP) {
+        puntosV++
+      }
+    }
+
+    return 1000 * (puntosDP +
+        puntosDN +
+        puntosV +
+        puntosH)
+
   }
 
-  DosEnRaya(jugador) {
+  DosEnRaya(color) {
+    const CP = 2 // Cantidad de piezas
+    const premio = 5
+    let rango = [8, 7, 6, 5, 4, 3]
+
+    let puntosH  = 0 // puntos horizontales         -
+    let puntosV  = 0 // puntos verticales           |
+    let puntosDN = 0 // puntos diagonales negativos \
+    let puntosDP = 0 // puntos diagonales positivos /
+
+
+    // Buscando diagonales negativos.
+    for (let i of rango) {
+      let espacios = 0
+      let puntos   = 0
+
+      for (let x = 0; x <= 6; x++) {
+        let y = 5 - (i - x)
+
+        try {
+          if (this.estado[y][x] == color) {
+            puntos++
+
+          } else if (this.estado[y][x] == '' && puntos != 0 && espacios < CP - 1) {
+            espacios++
+          } else {
+            espacios = 0
+            puntos = 0
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosDN += premio
+      } else if (puntos == CP) {
+        puntosDN++
+      }
+    }
+
+    // Buscando diagonales positivos
+    rango = [-3, -2, -1, 0, 1, 2]
+
+    for (let i of rango) {
+      let espacios = 0
+      let puntos   = 0
+
+      for (let x = 0; x <= 6; x++) {
+        let y = 5 - (x + i)
+
+        try {
+          if (this.estado[y][x] == color) {
+            puntos++
+
+          } else if (this.estado[y][x] == '' && puntos != 0 && espacios < CP - 1) {
+            espacios++
+          } else {
+            espacios = 0
+            puntos = 0
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosDP += premio
+      } else if (puntos == CP) {
+        puntosDP++
+      }
+    }
+
+    // Buscando horizontales
+    for (let j = 5; j >= 0; j--) {
+      const validos = [color, '']
+      let espacios = 0
+      let puntos = 0
+
+      for (let i = 0; i < 7; i++) {
+        try {
+          if (this.estado[j][i] == color) {
+            puntos++
+
+          } else if (!validos.includes(this.estado[j][i]) || this.estado[j][i] == '' && j + 1 < 6 && this.estado[j+1][i] == '' || espacios == 2) {
+            espacios = 0
+            puntos = 0
+
+          } else if (j + 1 < 6 && this.estado[j+1][i] != '' || j == 5 && this.estado[j][i] == '') {
+            espacios++
+          }
+        } catch (e) {}
+        if (puntos == CP) {
+          puntosH++
+          espacios = 0
+          puntos = 0
+        }
+      }
+      if (puntos > CP) {
+        puntosH += premio
+      } else if (puntos == CP) {
+        puntosH++
+      }
+    }
+    //console.log(puntosH)
+
+    // Buscando verticales
+    for (let i = 0; i < 7; i++) {
+      let puntos = 0
+      const validos = [color, '']
+
+      for (let j = 5; j >= 0; j--) {
+        try {
+          if (this.estado[j][i] == color) {
+            puntos++
+
+          } else if (!validos.includes(this.estado[j][i])) {
+            puntos = 0
+
+          }
+        } catch (e) {}
+      }
+      if (puntos > CP) {
+        puntosV += premio
+      } else if (puntos == CP) {
+        puntosV++
+      }
+    }
+
+    return 1000 * (puntosDP +
+        puntosDN +
+        puntosV +
+        puntosH)
 
   }
 
@@ -580,6 +740,15 @@ class Nodo {
   }
 }
 
+const FakeTablero = [
+  ["", "", "", "", "", "", ""],
+  ["", "", "", "", "", "", ""],
+  ["", "", "", "", "", "", ""],
+  ["", "", "", "", "", "", ""],
+  ["y", "y", "", "y", "", "", ""],
+  ["y", "y", "", "y", "", "y", "y"],
+]
+
 const Max = (primero, segundo) => {
   return primero.ValorHeuristico > segundo.ValorHeuristico ? primero : segundo
 }
@@ -587,27 +756,9 @@ const Min = (primero, segundo) => {
   return primero.ValorHeuristico < segundo.ValorHeuristico ? primero : segundo
 }
 const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
-  let jugador = MaximizandoJugador ? "IA" : "J"
+  let jugador = !MaximizandoJugador ? "IA" : "J"
 
-  /*if (profundidad == 0 || nodo.hijos != undefined && nodo.hijos.length == 0) {
-    nodo.Heuristica()
-    return nodo
-  }*/
-
-  let IAWins = Victoria_PosibleVictoria(nodo.estado, "r", "r")
-  let JWins = Victoria_PosibleVictoria(nodo.estado, "j", "j")
-
-  let Ganador = "Nadie"
-  if (IAWins > 0) {Ganador = "IA"}
-  else if (JWins > 0) {Ganador = "J"}
-
-  let SinFichas = false
-  if (FichasIA <= 0 && FichasJugador <= 0) {SinFichas = true}
-
-  let NodoTerminal = SinFichas || Ganador != "Nadie"
-
-  if (NodoTerminal || profundidad == 0) {
-    console.log("Ganador: " + Ganador + "___" + "SinFichas: " + SinFichas)
+  if (nodo.hijos.length == 0 || profundidad == 0) {
     nodo.Heuristica()
     return nodo
   }
