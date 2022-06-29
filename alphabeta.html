@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/style.css">
+  <!-- Gothic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+  <!-- Swal Alerts -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+  <title>Connect-4</title>
+</head>
+
+<body>
+
+<section>
+
+  <nav><h1>Connect-4</h1></nav>
+
+  <section class="hero">
+
+    <div class="table">
+
+      <div class="column uno">
+        <div id="a1" class="cell"></div>
+        <div id="b1" class="cell"></div>
+        <div id="c1" class="cell"></div>
+        <div id="d1" class="cell"></div>
+        <div id="e1" class="cell"></div>
+        <div id="f1" class="cell"></div>
+      </div>
+
+      <div class="column dos">
+        <div id="a2" class="cell"></div>
+        <div id="b2" class="cell"></div>
+        <div id="c2" class="cell"></div>
+        <div id="d2" class="cell"></div>
+        <div id="e2" class="cell"></div>
+        <div id="f2" class="cell"></div>
+      </div>
+
+      <div class="column tres">
+        <div id="a3" class="cell"></div>
+        <div id="b3" class="cell"></div>
+        <div id="c3" class="cell"></div>
+        <div id="d3" class="cell"></div>
+        <div id="e3" class="cell"></div>
+        <div id="f3" class="cell"></div>
+      </div>
+
+      <div class="column cuatro">
+        <div id="a4" class="cell"></div>
+        <div id="b4" class="cell"></div>
+        <div id="c4" class="cell"></div>
+        <div id="d4" class="cell"></div>
+        <div id="e4" class="cell"></div>
+        <div id="f4" class="cell"></div>
+      </div>
+
+      <div class="column cinco">
+        <div id="a5" class="cell"></div>
+        <div id="b5" class="cell"></div>
+        <div id="c5" class="cell"></div>
+        <div id="d5" class="cell"></div>
+        <div id="e5" class="cell"></div>
+        <div id="f5" class="cell"></div>
+      </div>
+
+      <div class="column seis">
+        <div id="a6" class="cell"></div>
+        <div id="b6" class="cell"></div>
+        <div id="c6" class="cell"></div>
+        <div id="d6" class="cell"></div>
+        <div id="e6" class="cell"></div>
+        <div id="f6" class="cell"></div>
+      </div>
+
+      <div class="column siete">
+        <div id="a7" class="cell"></div>
+        <div id="b7" class="cell"></div>
+        <div id="c7" class="cell"></div>
+        <div id="d7" class="cell"></div>
+        <div id="e7" class="cell"></div>
+        <div id="f7" class="cell"></div>
+      </div>
+    </div>
+
+    <div class="horizontal info">
+
+      <div class="vertical cuarenta">
+
+        <div class="horizontal around">
+          <h2>Partidos - </h2>
+          <h2>IA</h2>
+          <h2 class="PartidosIA" id="PartidosIA">0</h2>
+          <h2>J</h2>
+          <h2 class="PartidosJ" id="PartidosJ">0</h2>
+        </div>
+
+        <div class="horizontal around">
+          <h2>Movimientos</h2>
+          <h2 class="moves" id="moves">0</h2>
+        </div>
+
+        <div class="horizontal around">
+          <h2>Turno</h2>
+          <div class="turno" id="turno"></div>
+        </div>
+
+      </div>
+
+      <div class="vertical">
+
+        <div class="horizontal">
+
+          <div class="play" onclick="">
+            <img id="boton" src="/data/images/play.svg">
+          </div>
+          <!-- <div class="restock">
+            <img src="/data/images/restock.svg">
+          </div>
+          <div class="pause">
+            <img src="/data/images/pause.svg">
+          </div> -->
+
+        </div>
+
+        <h2 class="vertical time" id="time">
+          00:00:00
+        </h2>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+  <footer><h2>Poda Alpha Beta</h2></footer>
+
+</section>
+
+<script src="/scripts/clock.js"></script>
+<script src="/scripts/alphabeta.js"></script>
+<script src="/scripts/vis.js"></script>
+
+</body>
+
+</html>

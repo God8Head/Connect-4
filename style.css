@@ -32,6 +32,7 @@ h2 {
 body {
   display: flex;
   flex-direction: row;
+  justify-content: center;
 
   background-color: #000036;
 }
@@ -79,6 +80,16 @@ nav {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: calc(100% - 15rem);
+}
+
+.main_hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
   align-items: center;
 
   width: 100%;
@@ -191,6 +202,9 @@ footer {
   border-style: solid;
   border-width: 1px;
 
+  display: flex;
+  justify-content: center;
+
   height: 5rem;
   width: 100%;
 }
@@ -247,4 +261,13 @@ footer {
 
 #time {
   font-family: monospace;
+}
+
+.boton {
+  font-size: 4rem;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-weight: 500;
+  color: #5f9ea0;
+
+  text-decoration: none;
 }
