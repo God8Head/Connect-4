@@ -102,7 +102,7 @@ const TablaHauristica = [
 
 var reiniciarPartida = () => {
 
-  time = 0
+  let time = 0
   movimientos = 0
 
   tablero = [
