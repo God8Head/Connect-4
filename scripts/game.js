@@ -1,14 +1,3 @@
-// Turno del Jugador
-
-// Turno del pc, que sea una función ejecutable desde a fuera
-
-// Un iniciador que determine el algoritmo a ejecutarse
-
-// Un redireccionador que intercambie turnos
-
-// Manejar retroalimentaciones en pantalla y compartir variables entre algoritmos
-
-// Obtener variables que se necesitan manejar acá
 "use strict"
 
 const Infinito = Number.MAX_SAFE_INTEGER
@@ -54,13 +43,13 @@ let columnas_interfaz = [
 ]
 
 let columnas_funciones = [
-    unoFinJ,
-    dosFinJ,
-    tresFinJ,
-    cuatroFinJ,
-    cincoFinJ,
-    seisFinJ,
-    sieteFinJ
+  unoFinJ,
+  dosFinJ,
+  tresFinJ,
+  cuatroFinJ,
+  cincoFinJ,
+  seisFinJ,
+  sieteFinJ
 ]
 
 var turno                 = primeros_turnos_partidas[0]
@@ -70,6 +59,9 @@ let TableroColsDisp       = [6, 6, 6, 6, 6, 6, 6]
 let FichasJugador         = 21
 let FichasIA              = 21
 const numToWin            = 4
+
+let GameScore             = 100000
+let ArregloGanador        =  []
 
 const CargarTablero_interfaz = () => {
   let output = Array(Array())
@@ -90,7 +82,7 @@ const CargarTablero_interfaz = () => {
 
 const tablero_interfaz = CargarTablero_interfaz()
 
-let tablero = [
+var tablero = [
   ["", "", "", "", "", "", ""],
   ["", "", "", "", "", "", ""],
   ["", "", "", "", "", "", ""],
@@ -143,15 +135,16 @@ function FinPorTiempo() {
 }
 
 function Inicio() {
-  setTimeout(FinPorTiempo, 600000);
+  setTimeout(FinPorTiempo, 59000);
   Juego()
 }
 
-function Juego() {
+async function Juego() {
   if (turno == "J") {
     InicioJugador()
   } else {
-    TurnoIA()
+    await TurnoAlphaBeta()
+    // await TurnoMinimax()
   }
 }
 
@@ -184,57 +177,41 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function Aleatorio(inferior, superior) {
-  let numPosibilidades = superior - inferior;
-  let aleatorio = Math.random() * (numPosibilidades + 1);
-  aleatorio = Math.floor(aleatorio);
-
-  if (FichasIA <= 0) return -1;
-
-  if (TableroColsDisp[inferior + aleatorio] < 1) return Aleatorio(inferior, superior)
-
-  return inferior + aleatorio;
-}
-
-async function TurnoIA() {
-
+async function TurnoMinimax() {
   turno_interfaz.className = "turnor"
 
-  await sleep(5)
+  await sleep(150)
 
-  //let aleatoria = Aleatorio(0, 6)
+  var jugada = Maximizar(tablero, 5)[0]
 
-  //InsertarFicha("IA", aleatoria)
-
-  let jugada = MiniMax(tablero, 4, true)
-
-  console.log(jugada)
-
-  if ( EsPosibleJugada(tablero, jugada) ) {
-
-    let fila = TopeColumna(tablero, jugada)
-    InsertarFicha("IA", jugada)
-    Verificar()
-
-  }
+  var fila = TopeColumna(tablero, jugada)
+  InsertarFicha("IA", jugada)
+  Verificar()
 
 }
 
-const InsertarFicha = (turno, columna) => {
+async function TurnoAlphaBeta() {
+  turno_interfaz.className = "turnor"
+
+  await sleep(150)
+
+  var jugada = Alphalizar(tablero, 5, -1000000000, 1000000000)[0]
+
+  var fila = TopeColumna(tablero, jugada)
+  InsertarFicha("IA", jugada)
+  Verificar()
+
+}
+
+function InsertarFicha(turno, columna) {
 
   if (columna >= 7 || columna < 0 || TableroColsDisp[columna] < 1) return
 
   TableroColsDisp[columna] -= 1
 
-  let altura_ultima_ficha = 5
+  let altura_ultima_ficha = -1
 
-  for (let i = 0; i < tablero.length; i++) {
-    let fila = tablero[i]
-    if ( fila[columna] != "" ) {
-      altura_ultima_ficha = i - 1
-      break
-    }
-  }
+  altura_ultima_ficha = TopeColumna(tablero, columna)
 
   if (turno == "J") {
     tablero[altura_ultima_ficha][columna] = "y"
@@ -245,16 +222,20 @@ const InsertarFicha = (turno, columna) => {
     tablero_interfaz[altura_ultima_ficha][columna].className = "cellr"
     FichasIA -= 1
   }
+
 }
 
 function Victoria_PosibleVictoria(tablero, jugador, posible) {
+
+  let table = DeepCopy(tablero)
+
   const numToWin = 4
   let lineasEncontradas = 0
 
   //Búscando líneas de 4 horizontales
   let NumHorizontales = 0
 
-  for (let fila of tablero) {
+  for (let fila of table) {
 
     let cantidad = 0;
     for (let celda of fila) {
@@ -266,11 +247,11 @@ function Victoria_PosibleVictoria(tablero, jugador, posible) {
   //Buscando lineas de 4 verticales
   let NumVerticales = 0
 
-  for (let col = 0; col < tablero[0].length; col++) {
+  for (let col = 0; col < table[0].length; col++) {
     let cantidad = 0;
-    for (let fil = 0; fil < tablero.length; fil++) {
-      cantidad = (tablero[fil][col] == jugador ||
-                  tablero[fil][col] == posible) ? cantidad + 1 : 0
+    for (let fil = 0; fil < table.length; fil++) {
+      cantidad = (table[fil][col] == jugador ||
+          table[fil][col] == posible) ? cantidad + 1 : 0
       NumVerticales = cantidad >= numToWin ? NumVerticales + 1 : NumVerticales
     }
   }
@@ -278,13 +259,13 @@ function Victoria_PosibleVictoria(tablero, jugador, posible) {
   //Buscando líneaas de 4 diagonales de pendiente negativa
   let NumDiagonalNeg = 0
 
-  for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+  for (let fil = 0; fil <= table.length - numToWin; fil++) {
+    for (let col = 0; col <= table[0].length - numToWin; col++) {
 
       let cantidad = 0
       for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        cantidad = (tablero[fil + posLinea][col + posLinea] == jugador ||
-                    tablero[fil + posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
+        cantidad = (table[fil + posLinea][col + posLinea] == jugador ||
+            table[fil + posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
         NumDiagonalNeg += cantidad >= numToWin ? 1 : 0
       }
     }
@@ -293,23 +274,17 @@ function Victoria_PosibleVictoria(tablero, jugador, posible) {
   //Buscando líneas de 4 diagonales de pendiente positiva
   let NumDiagonalPos = 0
 
-  for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+  for (let fil = table.length - 1; fil >= numToWin - 1; fil--) {
+    for (let col = 0; col <= table[0].length - numToWin; col++) {
 
       let cantidad = 0
       for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        cantidad = (tablero[fil - posLinea][col + posLinea] == jugador ||
-                    tablero[fil - posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
+        cantidad = (table[fil - posLinea][col + posLinea] == jugador ||
+            table[fil - posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
         NumDiagonalPos += cantidad >= numToWin ? 1 : 0
       }
     }
   }
-
-  // console.log("___________________________________________________")
-  // console.log(NumHorizontales)
-  // console.log(NumVerticales)
-  // console.log(NumDiagonalNeg)
-  // console.log(NumDiagonalPos)
 
   lineasEncontradas =
       NumHorizontales +
@@ -319,13 +294,7 @@ function Victoria_PosibleVictoria(tablero, jugador, posible) {
   return lineasEncontradas
 }
 
-function Contar(arreglo, aContar) {
-  return arreglo.reduce((total, actual) => {
-    return actual == aContar ? total + 1 : total
-  })
-}
-
-const Verificar = () => {
+function Verificar() {
 
   let estado = ""
   let EnJuego = true
@@ -338,7 +307,8 @@ const Verificar = () => {
   let jugadores = ["y", "r"]
   let HayCuatroLineas = false
   jugadores.forEach((jugador) => {
-    if (Victoria_PosibleVictoria(tablero, jugador, jugador) != 0) {
+
+    if ( Victoria_PosibleVictoria(tablero, jugador, jugador) ) {
       HayCuatroLineas = true
     }
   })
@@ -384,462 +354,300 @@ const Verificar = () => {
   }
 }
 
-/*
-class Nodo {
-
-  constructor(estado, jugador) {
-    this.hijos = Array()
-    this.ValorHeuristico = 0
-    this.estado = [...estado]
-    this.jugador = jugador
+// Revisión pendiente
+function DeepCopy(tablero) {
+  var nuevo_tablero = new Array();
+  for (var i = 0; i < tablero.length; i++) {
+    nuevo_tablero.push(tablero[i].slice());
   }
-
-  Heuristica_Estado(esTerminal, profundidad) {
-
-    if (esTerminal) {
-      if (HayVictoria(nodo.estado, "r")) {
-        return 10000000
-      } else if (HayVictoria(nodo.estado, "y")) {
-        return -10000000
-      } else {
-        return 0
-      }
-    } else {
-      return PuntuarTablero(this.estado, this.jugador)
-    }
-
-  }
-  /*
-  HeuristicaEstado() {
-    for (let i = 0; i < TablaHauristica.length; i++) {
-      for (let j = 0; j < TablaHauristica[i].length; j++) {
-        if (this.estado[i][j] != '') {
-          let valor = TablaHauristica[i][j] + Victoria_PosibleVictoria(this.estado, this.jugador)
-          valor *= this.estado[i][j] == 'y' ? -1 : 1
-
-          this.ValorHeuristico += valor
-        }
-      }
-    }
-    const victoria = (jugador) => {
-      Victoria_PosibleVictoria(hijo, this.jugador, jugador) - Victoria_PosibleVictoria(hijo, this.jugador, jugador)
-    }
-    for (let hijo of this.hijos) {
-      let posible = victoria(this.jugador == 'y' ? 'r' : 'y')
-      if (this.ValorHeuristico < posible) {
-        this.ValorHeuristico = posible
-      }
-    }
-    this.ValorHeuristico *= this.ValorHeuristico < 0 && this.jugador == 'y' ? 1 : -1
-  }
-
-  TresEnRaya(jugador) {
-    let NumHorizontales = 0
-
-    // Verificar que haya en la siguientes configuraciones:
-    // | XX X  |
-    // |  XXX  |
-    for (let fila of tablero) {
-
-      let cantidad = 0;
-      for (let celda of fila) {
-        cantidad = (celda == jugador || celda == posible) ? cantidad + 1 : 0
-        NumHorizontales = cantidad >= numToWin ? NumHorizontales + 1 : NumHorizontales
-      }
-    }
-
-    //Buscando lineas de 4 verticales
-    let NumVerticales = 0
-
-    for (let col = 0; col < tablero[0].length; col++) {
-      let cantidad = 0;
-      for (let fil = 0; fil < tablero.length; fil++) {
-        cantidad = (tablero[fil][col] == jugador ||
-            tablero[fil][col] == posible) ? cantidad + 1 : 0
-        NumVerticales = cantidad >= numToWin ? NumVerticales + 1 : NumVerticales
-      }
-    }
-
-    //Buscando líneaas de 4 diagonales de pendiente negativa
-    let NumDiagonalNeg = 0
-
-    for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
-      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
-
-        let cantidad = 0
-        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-          cantidad = (tablero[fil + posLinea][col + posLinea] == jugador ||
-              tablero[fil + posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
-          NumDiagonalNeg += cantidad >= numToWin ? 1 : 0
-        }
-      }
-    }
-
-    //Buscando líneas de 4 diagonales de pendiente positiva
-    let NumDiagonalPos = 0
-
-    for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
-      for (let col = 0; col <= tablero[0].length - numToWin; col++) {
-
-        let cantidad = 0
-        for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-          cantidad = (tablero[fil - posLinea][col + posLinea] == jugador ||
-              tablero[fil - posLinea][col + posLinea] == posible) ? cantidad + 1 : 0
-          NumDiagonalPos += cantidad >= numToWin ? 1 : 0
-        }
-      }
-    }
-  }
-
-  DosEnRaya(jugador) {
-
-  }
-
-
-  GenerarHijos() {
-
-    for (let col = 0; col < TableroColsDisp.length; col++) {
-
-      if (TableroColsDisp[col] > 0) {
-        let fila = -1
-        for (let fil = this.estado.length - 1; fil >= 0; fil--) {
-          if (this.estado[fil][col] == "") {
-            fila = fil
-            break
-          }
-        }
-
-        let nuevoHijo = this.DeepCopy(this.estado)
-
-        //console.log("______________________Hijo______________________")
-        //numnodos += 1
-        //console.log(numnodos)
-
-        //console.log("Nuevo Hijo")
-        //console.log(nuevoHijo)
-        nuevoHijo[fila][col] = this.jugador
-        //console.log("Estado")
-        //console.log(this.estado)
-        this.hijos.push(nuevoHijo)
-
-      }
-    }
-
-
-    for(let i = 0; i < this.estado.length; i++) {
-      for(let j = 0; j < this.estado[i].length; j++) {
-
-        try {
-          if ((i + 1 == this.estado.length || this.estado[i+1][j] != '') && this.estado[i][j] == '') {
-            let nuevoHijo = this.DeepCopy(this.estado)
-            nuevoHijo[i][j] = this.jugador
-            this.hijos.push(nuevoHijo)
-          }
-        } catch (e) { }
-      }
-    }
-
-  }
-
-  Heuristica(NodoTerminal) {
-    this.Heuristica_Estado(NodoTerminal)
-  }
+  return nuevo_tablero
 }
 
-const Max = (primero, segundo) => {
-  return primero.ValorHeuristico > segundo.ValorHeuristico ? primero : segundo
-}
-const Min = (primero, segundo) => {
-  return primero.ValorHeuristico < segundo.ValorHeuristico ? primero : segundo
-}
+//Check
+function PuntuarSituacion(tablero, fila, columna, dir_x, dir_y) {
+  var table = DeepCopy(tablero)
+  var Puntos_J = 0
+  var Puntos_IA = 0
 
-const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
-  let jugador = MaximizandoJugador ? "IA" : "J"
-
-  let NodoTerminal = HayEmpate() || HayVictoria(nodo.estado, "r") || HayVictoria(nodo.estado, "y")
-
-  if (NodoTerminal || profundidad == 0) {
-    return nodo.Heuristica_Estado(NodoTerminal, profundidad)
+  for (let i = 0; i < 4; i++) {
+    if ( table[ fila ][ columna ] == "y" ) {
+      Puntos_J = Puntos_J + 1
+    } else if ( table[ fila ][ columna ] == "r" ) {
+      Puntos_IA = Puntos_IA + 1
+    }
+    fila += dir_x
+    columna += dir_y
   }
 
-  let hijos = []
-  nodo.GenerarHijos()
-  nodo.Heuristica_Estado(NodoTerminal, profundidad)
-
-  console.log(nodo.hijos)
-  for (let hijo of nodo.hijos) {
-    let nuevoNodo = new Nodo(hijo, jugador == "IA" ? 'y' : 'r')
-    nuevoNodo.GenerarHijos()
-    hijos.push(nuevoNodo)
-
-    if (profundidad == 4) {
-      //console.log("______________________HIJOS_____________________")
-      //console.log(hijos[hijos.length - 1])
-    }
-  }
-
-  //console.log("______________________NEXT______________________")
-  //console.log("...")
-
-  if (MaximizandoJugador) {
-
-    let nodoMax = new Nodo("", "")
-    nodoMax.ValorHeuristico = -Infinito
-
-    for (let hijo of hijos) {
-      nodoMax = Max(nodoMax, MiniMax(hijo, profundidad - 1, false))
-    }
-
-    return nodoMax
-
+  if ( Puntos_J == 4 ) {
+    return -GameScore
+  } else if ( Puntos_IA == 4 ) {
+    return GameScore
   } else {
-
-    let nodoMin = new Nodo("", "")
-    nodoMin.ValorHeuristico = Infinito
-
-    for (let hijo of hijos) {
-      nodoMin = Min(nodoMin, MiniMax(hijo, profundidad - 1, true))
-    }
-
-    return nodoMin
+    return Puntos_IA - Puntos_J
   }
 }
-*/
+//Check
+function PuntuarTablero(tablero) {
 
-function DeepCopy(dato) {
-  return JSON.parse(JSON.stringify(dato))
-}
+  var table = DeepCopy(tablero)
 
-function PuntuarSituacion(situacion, jugador) {
+  var puntaje = 0
 
-  let puntaje = 0
-  let enemigo = jugador == "y" ? "r" : "y"
+  var puntos_verticales = 0
+  var puntos_horizontales = 0
+  var puntos_diagonales_1 = 0
+  var puntos_diagonales_2 = 0
 
-  if (Contar(situacion, jugador) == 4) {
-    puntaje += 100
-  } else if (Contar(situacion, jugador) == 3 && Contar(situacion, "") == 1) {
-    puntaje += 5
-  } else if (Contar(situacion, jugador) == 2 && Contar(situacion, "") == 2) {
-    puntaje += 2
-  }
+  var puntuacion = 0
 
-  if (Contar(situacion, enemigo) == 3 && Contar(situacion, "") == 1) {
-    puntaje -= 4
-  }
+  //Puntuando toda situación vertical
+  for (var fila = 0; fila < table.length - 3; fila++) {
+    for (var columna = 0; columna < table[0].length; columna++) {
 
-  return puntaje
+      puntuacion = PuntuarSituacion(table, fila, columna, 1, 0)
+      //console.log("fila: " + fila + " --- " + "columna: " + columna)
+      //console.log(puntuacion)
+      if ( puntuacion == GameScore ) { return GameScore }
+      if ( puntuacion == -GameScore) { return -GameScore }
+      puntos_verticales += puntuacion
 
-}
-
-function PuntuarTablero(tablero, jugador) {
-  let puntaje = 0
-
-  //Puntuando toda situación horizontal posible
-  for (let fil = 0; fil < tablero.length; fil++) {
-    let fila = tablero[fil]
-    for (let col = 0; col < tablero[0].length - numToWin; col++) {
-
-      let situacion = fila.slice(col, col + numToWin)
-      puntaje += PuntuarSituacion(situacion, jugador)
     }
   }
 
-  //Puntuando toda situacion vertical posible
-  for (let col = 0; col < tablero[0].length; col++) {
-    let columna = [];
+  //Puntuando toda situación horizontal
+  for (var fila = 0; fila < table.length; fila++) {
+    for (var columna = 0; columna < table[0].length - 3; columna++) {
 
-    for (let fil = 0; fil < tablero.length; fil++) {
-      columna.push(tablero[fil][col])
-    }
+      puntuacion = PuntuarSituacion(table, fila, columna, 0, 1)
+      //console.log("fila: " + fila + " --- " + "columna: " + columna)
+      //console.log(puntuacion)
+      if ( puntuacion == GameScore ) { return GameScore }
+      if ( puntuacion == -GameScore) { return -GameScore }
+      puntos_horizontales += puntuacion
 
-    for (let fil = 0; fil < tablero.length - numToWin; fil++) {
-
-      let situacion = columna.slice(fil, fil + numToWin)
-      puntaje += PuntuarSituacion(situacion, jugador)
     }
   }
 
   //Puntuando toda situacion diagonal negativa posible
-  for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+  for (var fila = 0; fila < table.length - 3; fila++) {
+    for (var columna = 0; columna < table[0].length - 3; columna++) {
 
-      let situacion = []
-      for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        situacion.push(tablero[fil + posLinea][col + posLinea])
-      }
-
-      puntaje += PuntuarSituacion(situacion, jugador)
+      puntuacion = PuntuarSituacion(table, fila, columna, 1, 1)
+      //console.log("fila: " + fila + " --- " + "columna: " + columna)
+      //console.log(puntuacion)
+      if ( puntuacion == GameScore ) { return GameScore }
+      if ( puntuacion == -GameScore) { return -GameScore }
+      puntos_diagonales_1 += puntuacion
 
     }
   }
 
   //Puntuando toda situacion positiva posible
-  for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
+  for (var fila = 3; fila < table.length; fila++) {
+    for (var columna = 0; columna < table[0].length - 3; columna++) {
 
-      let situacion = []
-      for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        situacion.push(tablero[fil - posLinea][col + posLinea])
-      }
-
-      puntaje += PuntuarSituacion(situacion, jugador)
+      puntuacion = PuntuarSituacion(table, fila, columna, -1, +1)
+      //console.log("fila: " + fila + " --- " + "columna: " + columna)
+      //console.log(puntuacion)
+      if ( puntuacion == GameScore ) { return GameScore }
+      if ( puntuacion == -GameScore) { return -GameScore }
+      puntos_diagonales_2 += puntuacion
 
     }
   }
+
+  puntaje = puntos_horizontales +
+            puntos_verticales +
+            puntos_diagonales_1 +
+            puntos_diagonales_2
 
   return puntaje
 }
 
 function TopeColumna(tablero, posibleJugada) {
-  for (let fila = tablero.length - 1; fila >= 0; fila--) {
-    if ( tablero[fila][posibleJugada] == "" ) {
+
+  let table = DeepCopy(tablero)
+
+  for (let fila = table.length - 1; fila >= 0; fila--) {
+    if ( table[fila][posibleJugada] == "" ) {
       return fila
     }
   }
 }
 
-function RealizarJugada(tablero, topeColumna, posibleJugada, jugador) {
-  tablero[topeColumna][posibleJugada] = jugador
-  return tablero
+function TableroLleno(tablero) {
+
+  let table = DeepCopy(tablero)
+
+  for (let i = 0; i < table[0].length; i++) {
+    if (table[0][i] == "") {return false}
+  }
+  return true
 }
 
-function EsPosibleJugada(tablero, jugada) {
-  return tablero[ tablero.length - 1 ][ jugada ] == ""
-}
+function Intento(tablero, columna, jugador) {
 
-function PosiblesJugadas(tablero) {
-  let posiblesJugadas = []
-  for (let posibleJugada = 0; posibleJugada < tablero[0].length - 1; posibleJugada++) {
-    if ( EsPosibleJugada(tablero, posibleJugada) ) {
-      posiblesJugadas.push( posibleJugada )
-    }
-  }
-  return posiblesJugadas
-}
+  let tabla = DeepCopy(tablero)
 
-function EsTerminal(tablero, posiblesJugadas) {
-  return
-    Victoria(tablero, "y") ||
-    Victoria(tablero, "r") ||
-    posiblesJugadas.length == 0
-}
+  if ( tabla[0][columna] == "" && columna >= 0 && columna < tabla[0].length ) {
 
-function Contar(arreglo, aContar) {
-  return arreglo.reduce((total, actual) => {
-    return actual == aContar ? total + 1 : total
-  })
-}
+    for (let y = tabla.length - 1; y >= 0; y--) {
 
-function Victoria(tablero, jugador) {
-  //Revisar Victoria en horizontales
-  for (let fil = 0; fil < tablero.length; fil++) {
-    let fila = tablero[fil]
-    for (let col = 0; col < tablero[0].length - numToWin; col++) {
-
-      let situacion = fila.slice(col, col + numToWin)
-      if ( Contar(situacion, jugador) == numToWin ) {return true}
-    }
-  }
-
-  //Revisar Victoria en verticales
-  for (let col = 0; col < tablero[0].length; col++) {
-    let columna = [];
-
-    for (let fil = 0; fil < tablero.length; fil++) {
-      columna.push(tablero[fil][col])
-    }
-
-    for (let fil = 0; fil < tablero.length; fil++) {
-
-      let situacion = columna.slice(fil, fil + numToWin)
-      if ( Contar(situacion, jugador) == numToWin ) {return true}
-    }
-  }
-
-  //Revisar Victoria en Diagonal Negativa
-  for (let fil = 0; fil <= tablero.length - numToWin; fil++) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
-
-      let situacion = []
-      for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        situacion.push(tablero[fil + posLinea][col + posLinea])
-      }
-
-      if ( Contar(situacion, jugador) == numToWin ) {return true}
-
-    }
-  }
-
-  //Revisar Victoria en Diagonal Positiva
-  for (let fil = tablero.length - 1; fil >= numToWin - 1; fil--) {
-    for (let col = 0; col <= tablero[0].length - numToWin; col++) {
-
-      let situacion = []
-      for (let posLinea = 0; posLinea < numToWin; posLinea++) {
-        situacion.push(tablero[fil - posLinea][col + posLinea])
-      }
-
-      if ( Contar(situacion, jugador) == numToWin ) {return true}
-
-    }
-  }
-
-  //Si no hay, pues se dice
-  return false
-}
-
-const MiniMax = (tablero, profundidad, maximizingPlayer) => {
-
-  let posiblesJugadas = PosiblesJugadas(tablero)
-  let esTerminal      = EsTerminal(tablero, posiblesJugadas)
-
-  if (profundidad = 0 || esTerminal) {
-
-    if (esTerminal) {
-      if (Victoria(tablero, "r")) {
-        return [null, 10000000000]
-      } else if (Victoria(tablero, "y")) {
-        return [null, -10000000000]
-      } else {
-        return [null, 0]
-      }
-    } else {
-      return [null, PuntuarTablero]
-    }
-  }
-
-  if (maximizingPlayer) {
-    let max = -Infinito
-    let jugada = 0
-
-    for (let posibleJugada in posiblesJugadas) {
-      let topeColumna = TopeColumna(tablero, posibleJugada)
-      let nuevoTablero = DeepCopy(tablero)
-      nuevoTablero = RealizarJugada(nuevoTablero, topeColumna, posibleJugada, "r")
-      let nuevoMax = MiniMax(nuevoTablero, profundidad - 1, false)[1]
-
-      if (nuevoMax > max) {
-        max = nuevoMax
-        jugada = posibleJugada
+      if ( tabla[y][columna] == "" ) {
+        tabla[y][columna] = jugador
+        break
       }
     }
-    return jugada, max
 
+    return [true, tabla]
   } else {
-    let min = Infinito
-    let jugada = 0
+    return [false, tabla]
+  }
 
-    for (let posibleJugada in posiblesJugadas) {
-      let topeColumna = TopeColumna(tablero, posibleJugada)
-      let nuevoTablero = DeepCopy(tablero)
-      nuevoTablero = RealizarJugada(nuevoTablero, topeColumna, posibleJugada, "r")
-      let nuevoMax = MiniMax(nuevoTablero, profundidad - 1, true)[1]
+}
 
-      if (nuevoMax > min) {
-        min = nuevoMax
-        jugada = posibleJugada
+function TableroTerminado(tablero, profundidad, puntuar) {
+
+  let table = DeepCopy(tablero)
+
+  return  profundidad == 0 ||
+          puntuar == GameScore ||
+          puntuar == -GameScore ||
+          TableroLleno(table)
+}
+
+function Minimizar(tablero, profundidad) {
+
+  let table = DeepCopy(tablero)
+
+  var puntuar = PuntuarTablero(table)
+
+  if ( TableroTerminado(table, profundidad, puntuar) ) {
+    return [null, puntuar]
+  }
+
+  var min = [null, 99999]
+
+  for (let columna = 0; columna < table[0].length; columna++) {
+
+    let nuevo_tablero = DeepCopy(table)
+
+    let Buen_Intento = Intento(nuevo_tablero, columna, "y" )
+
+    if ( Buen_Intento[0] ) {
+
+      let jugada = Maximizar(Buen_Intento[1], profundidad - 1)
+
+      if ( min[0] == null || jugada[1] < min[1] ) {
+        min[0] = columna
+        min[1] = jugada.slice(1,2)[0]
       }
     }
-    return jugada, min
   }
+
+  return min
 }
+
+function Betalizar(tablero, profundidad, alpha, beta) {
+
+  let table = DeepCopy(tablero)
+
+  var puntuar = PuntuarTablero(table)
+
+  if ( TableroTerminado(table, profundidad, puntuar) ) {
+    return [null, puntuar]
+  }
+
+  var min = [null, 99999]
+
+  for (let columna = 0; columna < table[0].length; columna++) {
+
+    let nuevo_tablero = DeepCopy(table)
+
+    let Buen_Intento = Intento(nuevo_tablero, columna, "y" )
+
+    if ( Buen_Intento[0] ) {
+
+      let jugada = Alphalizar(Buen_Intento[1], profundidad - 1, alpha, beta)
+
+      if ( min[0] == null || jugada[1] < min[1] ) {
+        min[0] = columna
+        min[1] = jugada.slice(1,2)[0]
+        beta = jugada.slice(1,2)[0]
+      }
+
+      if ( alpha >= beta ) {return min}
+    }
+  }
+
+  return min
+}
+
+function Maximizar(tablero, profundidad) {
+
+  let table = DeepCopy(tablero)
+
+  var puntuar = PuntuarTablero(table)
+
+  if ( TableroTerminado(table, profundidad, puntuar) ) {
+    return [null, puntuar]
+  }
+
+  var max = [null, -99999]
+
+  for (let columna = 0; columna < table[0].length; columna++) {
+
+    let nuevo_tablero = DeepCopy(table)
+
+    let Buen_Intento = Intento(nuevo_tablero, columna, "r" )
+
+    if ( Buen_Intento[0] ) {
+
+      let jugada = Minimizar(Buen_Intento[1], profundidad - 1)
+
+      if ( max[0] == null || jugada[1] > max[1] ) {
+        max[0] = columna
+        max[1] = jugada.slice(1,2)[0]
+      }
+    }
+  }
+
+  return max
+}
+
+function Alphalizar(tablero, profundidad, alpha, beta) {
+
+  let table = DeepCopy(tablero)
+
+  var puntuar = PuntuarTablero(table)
+
+  if ( TableroTerminado(table, profundidad, puntuar) ) {
+    return [null, puntuar]
+  }
+
+  var max = [null, -99999]
+
+  for (let columna = 0; columna < table[0].length; columna++) {
+
+    let nuevo_tablero = DeepCopy(table)
+
+    let Buen_Intento = Intento(nuevo_tablero, columna, "r" )
+
+    if ( Buen_Intento[0] ) {
+
+      let jugada = Betalizar(Buen_Intento[1], profundidad - 1, alpha, beta)
+
+      if ( max[0] == null || jugada[1] > max[1] ) {
+        max[0] = columna
+        max[1] = jugada.slice(1,2)[0]
+        alpha = jugada.slice(1,2)[0]
+      }
+
+      if ( alpha >= beta ) {return max}
+    }
+  }
+
+  return max
+}
+
