@@ -3,8 +3,6 @@
 const Infinito = Number.MAX_SAFE_INTEGER
 let primeros_turnos_partidas = ["J", "IA", "J"]
 
-let PartidosIA_interfaz  = document.getElementById("PartidosIA");
-let PartidosJ_interfaz   = document.getElementById("PartidosJ");
 let time_interfaz        = document.getElementById("time")
 let movimientos_interfaz = document.getElementById("moves")
 let turno_interfaz       = document.getElementById("turno")
@@ -139,12 +137,18 @@ function Inicio() {
   Juego()
 }
 
+let cantTurnos = 0
+
 async function Juego() {
   if (turno == "J") {
     InicioJugador()
+
+    cantTurnos++
+    movimientos_interfaz.textContent = cantTurnos
+
   } else {
     await TurnoAlphaBeta()
-    // await TurnoMinimax()
+    //await TurnoMinimax()
   }
 }
 
