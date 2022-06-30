@@ -205,9 +205,11 @@ async function TurnoIA() {
   //InsertarFicha("IA", aleatoria)
   {
     let nodoActual = new Nodo(tablero, 'r')
-    nodoActual.GenerarHijos()
-    let nodoProximo = MiniMax(nodoActual, 2, true)
+    //nodoActual.GenerarHijos()
+    let nodoProximo = BuscarMejor(nodoActual, 2)
 
+    console.log(nodoActual)
+    console.log(nodoProximo)
     let jugada = -1
 
     for (let i = 0; i < tablero.length; i++) {
@@ -437,13 +439,31 @@ const Verificar = () => {
   }
 }
 
+const Hash = (cadena) => {
+  let hash = 0
+
+  if (cadena.length == 0) return 0
+
+  for (let i in cadena) {
+    let char = cadena.charCodeAt(i)
+
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+
+  return hash
+}
+
 class Nodo {
 
   constructor(estado, jugador) {
-    this.hijos = Array()
+    this.hijos           = Array()
     this.ValorHeuristico = 0
-    this.estado = this.#DeepCopy(estado)
-    this.jugador = jugador
+    this.estado          = this.#DeepCopy(estado)
+    this.jugador         = jugador
+    this.solucion        = 0
+    this.estadoHash      = Hash(JSON.stringify(estado))
+    this.oponente        = this.jugador == 'y' ? 'r' : 'y'
 
     //this.#GenerarHijos()
     //this.HeuristicaEstado()
@@ -454,9 +474,10 @@ class Nodo {
   }
 
   HeuristicaEstado() {
-    let oponente = this.jugador == 'y' ? 'r' : 'y'
-    this.ValorHeuristico = this.TresEnRaya(this.jugador) + this.DosEnRaya(this.jugador) -
-        (this.TresEnRaya(oponente) + this.DosEnRaya(oponente))
+    this.ValorHeuristico = (this.TresEnRaya(this.jugador) + this.DosEnRaya(this.jugador)) -
+        (this.TresEnRaya(this.oponente) + this.DosEnRaya(this.oponente))
+
+    // this.ValorHeuristico *= this.jugador == 'y' ? 1 : -1
   }
 
   TresEnRaya(color) {
@@ -533,26 +554,28 @@ class Nodo {
       let puntos = 0
 
       for (let i = 0; i < 7; i++) {
-        try {
+
+        console.log(puntosH)
           if (this.estado[j][i] == color) {
             puntos++
 
-          } else if (!validos.includes(this.estado[j][i]) || this.estado[j][i] == '' && j + 1 < 6 && this.estado[j+1][i] == '' || espacios == 2) {
+          } /*else if (!validos.includes(this.estado[j][i]) || this.estado[j][i] == '' && j + 1 < 6 && this.estado[j+1][i] == '') {
             espacios = 0
             puntos = 0
 
-          } else if (j + 1 < 6 && this.estado[j+1][i] != '' || j == 5 && this.estado[j][i] == '') {
+          } */else if (j + 1 < 6 && this.estado[j+1][i] != '' || j == 5 && this.estado[j][i] == '') {
             espacios++
           }
-        } catch (e) {}
-        if (puntos == CP) {
+
+        if (puntos >= CP) {
           puntosH++
           espacios = 0
           puntos = 0
         }
       }
-      if (puntos > CP) {
+      if (puntos >= CP + 1) {
         puntosH += 2*premio
+        console.log("Cuidao")
       } else if (puntos == CP) {
         puntosH++
       }
@@ -591,7 +614,7 @@ class Nodo {
 
   DosEnRaya(color) {
     const CP = 2 // Cantidad de piezas
-    const premio = 1
+    const premio = 5
     let rango = [8, 7, 6, 5, 4, 3]
 
     let puntosH  = 0 // puntos horizontales         -
@@ -657,24 +680,24 @@ class Nodo {
     }
 
     // Buscando horizontales
-    for (let j = 5; j >= 0; j--) {
+    for (let j = this.estado-1; j >= 0; j--) {
       const validos = [color, '']
       let espacios = 0
       let puntos = 0
 
       for (let i = 0; i < 7; i++) {
-        try {
-          if (this.estado[j][i] == color) {
-            puntos++
 
-          } else if (!validos.includes(this.estado[j][i]) || this.estado[j][i] == '' && j + 1 < 6 && this.estado[j+1][i] == '' || espacios == 2) {
-            espacios = 0
-            puntos = 0
+        if (this.estado[i][j] == color) {
+          puntos++
 
-          } else if (j + 1 < 6 && this.estado[j+1][i] != '' || j == 5 && this.estado[j][i] == '') {
-            espacios++
-          }
-        } catch (e) {}
+        } else if (!validos.includes(this.estado[i][j]) || this.estado[i][j] == '' && j + 1 < 6 && this.estado[i][j+1] == '' || espacios == 2) {
+          espacios = 0
+          puntos = 0
+
+        } else if (i + 1 < 6 && this.estado[i][j+1] != '' || j == 5 && this.estado[i][j] == '') {
+          espacios++
+        }
+
         if (puntos == CP) {
           puntosH++
           espacios = 0
@@ -683,6 +706,7 @@ class Nodo {
       }
       if (puntos > CP) {
         puntosH += 2*premio
+        //console.log("Cuidao")
       } else if (puntos == CP) {
         puntosH++
       }
@@ -712,7 +736,7 @@ class Nodo {
       }
     }
 
-    return 1000 * (puntosDP +
+    return 300 * (puntosDP +
         puntosDN +
         puntosV +
         puntosH)
@@ -724,19 +748,38 @@ class Nodo {
     for(let i = 0; i < this.estado.length; i++) {
       for(let j = 0; j < this.estado[i].length; j++) {
 
-        try {
+        //try {
           if ((i + 1 == this.estado.length || this.estado[i+1][j] != '') && this.estado[i][j] == '') {
             let nuevoHijo = this.#DeepCopy(this.estado)
             nuevoHijo[i][j] = this.jugador
-            this.hijos.push(nuevoHijo)
+
+            let nuevoNodo = new Nodo(nuevoHijo, this.oponente)
+            nuevoNodo.HeuristicaEstado()
+            //nuevoNodo.ValorHeuristico = TablaHauristica[i][j] * (1 + nuevoNodo.ValorHeuristico)
+
+            this.hijos.push(nuevoNodo)
           }
-        } catch (e) { }
+        //} catch (e) { }
       }
     }
   }
 
   Heuristica() {
     this.HeuristicaEstado()
+  }
+
+  GenerarArbol(profundidad) {
+    if (profundidad != 0) {
+      this.GenerarHijos()
+      this.Heuristica()
+    }
+
+    if (profundidad == 0 || this.hijos.length == 0) {
+      return
+    }
+    for (let hijo of this.hijos) {
+      hijo.GenerarArbol(profundidad - 1)
+    }
   }
 }
 
@@ -745,8 +788,8 @@ const FakeTablero = [
   ["", "", "", "", "", "", ""],
   ["", "", "", "", "", "", ""],
   ["", "", "", "", "", "", ""],
-  ["y", "y", "", "y", "", "", ""],
-  ["y", "y", "", "y", "", "y", "y"],
+  ["", "", "", "", "", "", ""],
+  ["", "y", "y", "r", "r", "r", ""],
 ]
 
 const Max = (primero, segundo) => {
@@ -755,30 +798,42 @@ const Max = (primero, segundo) => {
 const Min = (primero, segundo) => {
   return primero.ValorHeuristico < segundo.ValorHeuristico ? primero : segundo
 }
+
+const BuscarMejor = (nodo, profundidad) => {
+  nodo.GenerarArbol(profundidad)
+
+
+  let minim = MiniMax(nodo, profundidad, false)
+  for (let hijo of nodo.hijos) {
+    if (nodo.solucion == hijo.solucion) {
+      return hijo
+    }
+  }
+}
+
 const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
-  let jugador = !MaximizandoJugador ? "IA" : "J"
+  let jugador = MaximizandoJugador ? "J" : "IA"
 
   if (nodo.hijos.length == 0 || profundidad == 0) {
-    nodo.Heuristica()
     return nodo
   }
 
-  let hijos = []
-  nodo.GenerarHijos()
-  nodo.Heuristica()
-  for (let hijo of nodo.hijos) {
-    hijos.push(new Nodo(hijo, jugador == "IA" ? 'r' : 'y'))
-    hijos[hijos.length - 1].GenerarHijos()
-  }
+  // nodo.GenerarHijos(false)
+/*  for (let hijo of nodo.hijos) {
+    hijo.estadoPadre = nodo.estado
+  }*/
 
   if (MaximizandoJugador) {
 
     let nodoMax = new Nodo("", "")
     nodoMax.ValorHeuristico = -Infinito
+    //let max = [-Infinito]
 
-    for (let hijo of hijos) {
+    for (let hijo of nodo.hijos) {
       nodoMax = Max(nodoMax, MiniMax(hijo, profundidad - 1, false))
     }
+    nodo.ValorHeuristico = nodoMax.ValorHeuristico
+    nodo.solucion = nodoMax.estadoHash
 
     return nodoMax
 
@@ -786,10 +841,13 @@ const MiniMax = (nodo, profundidad, MaximizandoJugador) => {
 
     let nodoMin = new Nodo("", "")
     nodoMin.ValorHeuristico = Infinito
+    //let min = Infinito
 
-    for (let hijo of hijos) {
+    for (let hijo of nodo.hijos) {
       nodoMin = Min(nodoMin, MiniMax(hijo, profundidad - 1, true))
     }
+    nodo.ValorHeuristico = nodoMin.ValorHeuristico
+    nodo.solucion = nodoMin.estadoHash
 
     return nodoMin
   }
