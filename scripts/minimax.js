@@ -330,7 +330,6 @@ function Verificar() {
             icon: "info",
             button: "Listo",
         });
-        boton.src = "/data/images/restock.svg"
         clearInterval(clock);
     } else {
 
@@ -352,7 +351,6 @@ function Verificar() {
                 button: "Listo",
             });
         }
-        boton.src = "/data/images/restock.svg"
 
         clearInterval(clock);
     }

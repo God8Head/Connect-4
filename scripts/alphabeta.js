@@ -102,7 +102,7 @@ const TablaHauristica = [
 
 var reiniciarPartida = () => {
 
-  time = 0
+  let time = 0
   movimientos = 0
 
   tablero = [
@@ -330,7 +330,6 @@ function Verificar() {
       icon: "info",
       button: "Listo",
     });
-    boton.src = "/data/images/restock.svg"
     clearInterval(clock);
   } else {
 
@@ -352,7 +351,6 @@ function Verificar() {
         button: "Listo",
       });
     }
-    boton.src = "/data/images/restock.svg"
 
     clearInterval(clock);
   }
