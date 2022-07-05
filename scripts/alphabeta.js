@@ -186,7 +186,7 @@ async function TurnoMinimax() {
 
   await sleep(150)
 
-  var jugada = Maximizar(tablero, 10)[0]
+  var jugada = Maximizar(tablero, 5)[0]
 
   var fila = TopeColumna(tablero, jugada)
   InsertarFicha("IA", jugada)

@@ -133,7 +133,7 @@ function FinPorTiempo() {
 }
 
 function Inicio() {
-    setTimeout(FinPorTiempo, 59000);
+    setTimeout(FinPorTiempo, 590000);
     Juego()
 }
 
