@@ -72,7 +72,6 @@ const CargarTablero_interfaz = () => {
             // El código 97 es el caracter a en ascii.
             rows.push(document.getElementById(`${String.fromCharCode(97 + i)}${j}`))
         }
-
         output.push(rows)
     }
     return output
@@ -133,7 +132,7 @@ function FinPorTiempo() {
 }
 
 function Inicio() {
-    setTimeout(FinPorTiempo, 590000);
+    setTimeout(FinPorTiempo, 59000);
     Juego()
 }
 
